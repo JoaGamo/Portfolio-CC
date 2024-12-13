@@ -35,6 +35,21 @@ BEGIN
         -- Create index for tipo_instrumento
         CREATE INDEX idx_tipo_instrumento ON operacion(tipo_instrumento);
 
+        -- Tabla para cachear operaciones de IOL
+        CREATE TABLE operacion_iol_cache (
+            numero INTEGER PRIMARY KEY,
+            fecha_obtencion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            datos JSONB NOT NULL,
+            procesado BOOLEAN DEFAULT FALSE
+        );
+
+        -- Tabla para registro de última sincronización
+        CREATE TABLE iol_sync_log (
+            id SERIAL PRIMARY KEY,
+            ultima_sync TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            numeros_conocidos INTEGER[] NOT NULL
+        );
+
         -- Log the execution
         INSERT INTO initialization_log (script_name) VALUES ('init.sql');
     END IF;

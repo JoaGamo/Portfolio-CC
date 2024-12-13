@@ -3,6 +3,7 @@ from datetime import datetime
 import requests
 import pytz
 from CommonBroker import CommonBroker
+from db_manager import DatabaseManager
 
 class IOLClient(CommonBroker):
     def __init__(self, **kwargs):
@@ -63,34 +64,42 @@ class IOLClient(CommonBroker):
         }
         headers = {"Authorization": f"Bearer {token}"}
         
+        db = DatabaseManager()
+        operaciones_conocidas = db.obtener_operaciones_conocidas()
+        
         response = requests.get(url, params=payload, headers=headers)
         response.raise_for_status()
         aConvertir = response.json()
 
-        # Los dividendos van aparte, pues la API de IOL retorna todo null si los buscamos por número
-        # Gracias IOL <3
         numeros = []
         dividendos = []
         operaciones = []
+        nuevos_numeros = set()
+
         for operacion in aConvertir:
-            #print(f"Operation type: {type(operacion)}")
-            #print(f"Operation content: {operacion}")
             try:
                 if operacion["tipo"] == "Pago de Dividendos":
                     dividendos.append(operacion)
                 else:
-                    numeros.append(operacion["numero"])
+                    numero = operacion["numero"]
+                    nuevos_numeros.add(numero)
+                    if numero not in operaciones_conocidas:
+                        numeros.append(numero)
             except TypeError as e:
-                print("Si ocurrió esto y son las 12 de la noche, IOL apaga sus servidores :thumbsup:")
+                print("Si ocurrió esto y son las 12 de la noche, IOL apaga sus servidores 👍")
                 print(response.text)
                 print("Que descanse y buenas noches")
                 print("PD: Si no es de noche, algo salió mal")
-                print("TODO: Implementar base de datos para caché de operaciones")
                 raise e
+
+        # Actualizar lista de operaciones conocidas
+        with db:
+            db.actualizar_operaciones_conocidas(list(nuevos_numeros))
+
+        # Solo obtener detalles de operaciones nuevas
         for numero in numeros:
             operaciones.append(self.obtener_operacion_completa(numero).json())
         
-        # Esto quedó pendiente del proyecto anterior. Me parece que en Getquin esto está automatizado.
         # TODO: Implementar manejo de dividendos en IOL
         #if dividendos:
         #    manejador_dividendos = self.IOL_manejador_dividendos(dividendos)
@@ -104,11 +113,24 @@ class IOLClient(CommonBroker):
     # Junto con su tipo de moneda y todo lo demás :D
     # TODO: Caching de API calls de IOL
     def obtener_operacion_completa(self, numero):
+        # Intentar obtener de la caché primero
+        db = DatabaseManager()
+        with db:
+            cached = db.obtener_operacion_cache(numero)
+            if cached:
+                return type('Response', (), {'json': lambda: cached})()
+
+        # Si no está en caché, obtener de la API
         token = self._asegurar_token_valido()
         url = f"https://api.invertironline.com/api/v2/operaciones/{numero}"
         headers = {"Authorization": f"Bearer {token}"}
         response = requests.get(url, headers=headers)
         response.raise_for_status()
+
+        # Guardar en caché
+        with db:
+            db.guardar_operacion_cache(numero, response.json())
+
         return response
 
     def obtener_simbolo(self, operacion: Dict[str, Any]) -> str:
@@ -142,17 +164,19 @@ class IOLClient(CommonBroker):
 
 
     def obtener_tipo(self, operacion: Dict[str, Any]) -> str:
+        """Obtiene el tipo de operación según el schema de la base de datos"""
         tipo_map = {
-
-            "compra": "BUYING",
-            "suscripcionfci": "BUYING",
-
-            "venta": "SELLING", 
-            "rescatefci": "SELLING",
-
-            "pago_dividendos": "DIVIDEND"
+            "compra": "compra",
+            "suscripcionfci": "compra",
+            "venta": "venta", 
+            "rescatefci": "venta",
+            "pago_dividendos": "dividendo"
         }
-        return tipo_map.get(operacion["tipo"].lower(), "UNKNOWN")
+        return tipo_map.get(operacion["tipo"].lower(), "desconocido")
+    
+    def obtener_tipo_instrumento(self, operacion):
+        # En IOL no se especifica el tipo de instrumento, por lo que asumiremos que todos son acciones
+        return "accion"
 
 
     def obtener_moneda(self, operacion: Dict[str, Any]) -> str:
@@ -160,7 +184,7 @@ class IOLClient(CommonBroker):
         
 
     def obtener_mercado(self, operacion: Dict[str, Any]) -> str:
-        return "ARG" if operacion["mercado"].lower() == "bcba" else "USA"
+        return "BCBA" if operacion["mercado"].lower() == "bcba" else "NASDAQ"
     
     def obtener_comision(self, operacion: Dict[str, Any]) -> float:
         moneda = self.obtener_moneda(operacion)
@@ -170,7 +194,6 @@ class IOLClient(CommonBroker):
             return operacion['arancelesARS']
 
         
-    # Sin uso, traído del proyecto anterior. Creo que Getquin calcula tus dividendos automáticamente.
     class IOL_manejador_dividendos(CommonBroker):
         def __init__(self, dividendos):
             self.dividendos = dividendos
@@ -215,6 +238,5 @@ class IOLClient(CommonBroker):
         def obtener_operaciones(self) -> List[Dict[str, Any]]:
             raise NotImplementedError
 
-        
 
-    
+

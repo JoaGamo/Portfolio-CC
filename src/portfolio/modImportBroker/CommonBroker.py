@@ -49,7 +49,12 @@ class CommonBroker(ABC):
 
     @abstractmethod
     def obtener_tipo(self, operacion: Dict[str, Any]) -> str:
-        """Obtiene el tipo de operación (BUYING|SELLING) Desconozco que otros valores tenga la API de Getquin"""
+        """Obtiene el tipo de operación ('compra'|'venta'|'dividendo')"""
+        pass
+    
+    @abstractmethod
+    def obtener_tipo_instrumento(self, operacion: Dict[str, Any]) -> str:
+        """Obtiene el tipo de instrumento ('accion'|'bono'|'fci'|'crypto'|'otro')"""
         pass
 
     @abstractmethod
@@ -59,11 +64,10 @@ class CommonBroker(ABC):
 
     @abstractmethod
     def obtener_mercado(self, operacion: Dict[str, Any]) -> str:
-        """Obtiene el mercado de la operación (ARG|USA)"""
+        """Obtiene el mercado de la operación (BCBA|NASDAQ|etc)"""
         pass
     
     @abstractmethod
     def obtener_comision(self, operacion: Dict[str, Any]) -> float:
         """Obtiene la comisión (impuesto del broker) de la operación"""
         pass
-    
