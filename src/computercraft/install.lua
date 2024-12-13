@@ -1,5 +1,4 @@
 -- Import necesarios
-local http = require("http")
 local fs = require("fs")
 local shell = require("shell")
 
@@ -13,6 +12,12 @@ local files = {
     "api_client.lua",
     "basalt.lua"
 }
+
+if not http then
+    printError("HTTP API is disabled")
+    printError("Set http.enabled to true in the ComputerCraft config")
+    return
+end
 
 -- Función para descargar un archivo
 local function downloadFile(filename)
