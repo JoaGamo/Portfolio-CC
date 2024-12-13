@@ -1,13 +1,10 @@
 -- modulos/api_client.lua
 local http = require("http")
-local json = require("json") or do -- Para Lua 5.1 o si no tienes json
-local cjson = require("cjson")
-json = cjson.decode
-end
+local json = require("json")
 
 
-local function obtenerBalance(ticker)
-    local url = "http://tu_servidor:5000/balance/" .. ticker
+local function obtenerOperaciones(ticker)
+    local url = "http://localhost:5000/operaciones/" .. ticker
     local response = http.get(url)
 
     if response then
