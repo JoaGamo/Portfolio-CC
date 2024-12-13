@@ -86,11 +86,17 @@ class IOLClient(CommonBroker):
                     if numero not in operaciones_conocidas:
                         numeros.append(numero)
             except TypeError as e:
-                print("Si ocurrió esto y son las 12 de la noche, IOL apaga sus servidores 👍")
-                print(response.text)
-                print("Que descanse y buenas noches")
-                print("PD: Si no es de noche, algo salió mal")
-                raise e
+                mensaje = """
+                    Error al procesar operación de IOL.
+                    Si son las 12 de la noche, IOL apagó sus servidores 👍
+                    
+                    Respuesta de la API:
+                    {}
+                    
+                    PD: Si no es de noche, algo salió mal en serio.
+                    Error original: {}
+                """.format(response.text, str(e))
+                raise TypeError(mensaje)
 
         # Actualizar lista de operaciones conocidas
         with db:
