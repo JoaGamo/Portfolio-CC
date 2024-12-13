@@ -1,6 +1,4 @@
--- Import necesarios
-local fs = require("fs")
-local shell = require("shell")
+
 
 -- URLs base de los archivos raw en GitHub 
 local baseURL = "https://raw.githubusercontent.com/JoaGamo/Portfolio-CC/main/src/computercraft/"
