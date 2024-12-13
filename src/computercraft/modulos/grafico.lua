@@ -1,0 +1,1 @@
+-- Módulo para visualizar en la pantalla, ya sea con un grafico de barras, etc.

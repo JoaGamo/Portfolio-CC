@@ -109,11 +109,11 @@ class IOLClient(CommonBroker):
         # TODO: Implementar manejo de dividendos en IOL
         if dividendos:
             manejador_dividendos = self.IOL_manejador_dividendos(dividendos)
-            print("TODO: Implementar manejo de dividendos en IOL")
-            print("Dividendos capturados sin procesar:")
+            print("La API de IOL impide manejar dividendos correctamente")
+            print("Los guardaremos en caché directamente")
             print(dividendos)
-            # operaciones.extend(dividendos)
-        
+            for dividendo in dividendos:
+                db.guardar_operacion_cache(dividendo["numero"], dividendo)
         return operaciones
         
         
