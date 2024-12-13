@@ -16,7 +16,8 @@ DO $$
 BEGIN
     -- Check if script has been executed
     IF NOT EXISTS (SELECT 1 FROM initialization_log WHERE script_name = 'init.sql') THEN
-        -- Create main table
+        -- Tipo operacion = "compra", "venta"
+        -- Tipo instrumento = "accion", "bono", "crypto"
         CREATE TABLE operacion (
             id SERIAL PRIMARY KEY,
             fecha TIMESTAMP NOT NULL,
