@@ -1,6 +1,8 @@
+import sys
 from typing import Any, Dict, List
 from datetime import datetime
 import requests
+from tqdm import tqdm
 import pytz
 from portfolio.CommonBroker import CommonBroker
 from db.db_manager import DatabaseManager
@@ -76,7 +78,7 @@ class IOLClient(CommonBroker):
         operaciones = []
         nuevos_numeros = set()
 
-        for operacion in aConvertir:
+        for operacion in tqdm(aConvertir, desc="Obteniendo operaciones de IOL", unit="op", file=sys.stdout, mininterval=0):
             try:
                 if operacion["tipo"] == "Pago de Dividendos":
                     dividendos.append(operacion)
@@ -103,7 +105,7 @@ class IOLClient(CommonBroker):
             db.actualizar_operaciones_conocidas(list(nuevos_numeros))
 
         # Solo obtener detalles de operaciones nuevas
-        for numero in numeros:
+        for numero in tqdm(numeros, desc="Obteniendo detalles de operaciones", unit="op", file=sys.stdout, mininterval=0):
             operaciones.append(self.obtener_operacion_completa(numero).json()) # type: ignore
         
         # TODO: Implementar manejo de dividendos en IOL

@@ -1,5 +1,7 @@
+import sys
 from dotenv import load_dotenv
 import os
+from tqdm import tqdm
 from portfolio.CommonIOL import IOLClient
 from db.db_manager import DatabaseManager
 
@@ -17,8 +19,7 @@ def actualizar_portfolio(client):
     """Actualiza el portfolio en la base de datos"""
     db = DatabaseManager()
     operaciones = client.obtener_operaciones()
-    
-    for operacion in operaciones:
+    for operacion in tqdm(operaciones, desc="Procesando operaciones", unit="op", file=sys.stdout, mininterval=0):
         operacion_db = {
             'fecha': client.obtener_fecha(operacion),
             'tipo_operacion': client.obtener_tipo(operacion).lower(),
@@ -31,6 +32,7 @@ def actualizar_portfolio(client):
             'moneda': client.obtener_moneda(operacion),
             'notas': f"Operación importada desde {client.__class__.__name__}"
         }
+
         try:
             with db:
                 db.insertar_operacion(operacion_db)
@@ -39,6 +41,7 @@ def actualizar_portfolio(client):
             print(f"Error al insertar operación {operacion_db['ticker']}: {str(e)}")
 
 def mainPortfolio():
+    """Actualiza los datos de todas las operaciones en la base de datos"""
     load_dotenv()
     client = create_client()
     actualizar_portfolio(client)

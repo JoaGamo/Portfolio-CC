@@ -113,6 +113,33 @@ class DatabaseManager:
 
         except psycopg2.Error as e:
             raise Exception(f"Error al obtener las operaciones: {e}")
+        
+
+    def obtener_cantidad_actual(self, ticker) -> float:
+        """Obtiene la cantidad actual de un ticker (compras - ventas)"""
+        try:
+            if not self.conn or self.conn.closed:
+                self.conectar()
+            
+            query = """
+                SELECT tipo_operacion, cantidad 
+                FROM operacion 
+                WHERE ticker = %s
+            """
+            self.cur.execute(query, (ticker,))
+            cantidad_total = 0.0
+            
+            for row in self.cur.fetchall():
+                if row['tipo_operacion'] == 'compra':
+                    cantidad_total += float(row['cantidad'])
+                elif row['tipo_operacion'] == 'venta':
+                    cantidad_total -= float(row['cantidad'])
+            
+            return cantidad_total
+            
+        except psycopg2.Error as e:
+            raise Exception(f"Error al obtener la cantidad de operaciones: {e}")
+      
 
     def obtener_operacion_cache(self, numero: int) -> Optional[Dict]:
         """Obtiene una operación cacheada por su número"""

@@ -13,11 +13,12 @@ app = FastAPI(
 # Configurar CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # En producción, especificar los orígenes permitidos
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get("/operaciones/", response_model=List[Dict])
 async def obtener_operaciones(
@@ -40,7 +41,23 @@ async def obtener_operaciones(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/cantidad_actual/", response_model=float)
+async def obtener_cantidad_actual(ticker: str):
+    """
+    Obtiene la cantidad actual de un ticker (compras - ventas)
+    """
+    try:
+        db = DatabaseManager()
+        with db:
+            cantidad_actual = db.obtener_cantidad_actual(ticker)
+            return cantidad_actual
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
 @app.get("/")
 async def root():
     """Endpoint de verificación de API"""
     return {"status": "ok", "message": "Portfolio API running"}
+
