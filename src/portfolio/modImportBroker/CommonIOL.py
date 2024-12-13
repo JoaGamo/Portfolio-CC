@@ -45,7 +45,7 @@ class IOLClient(CommonBroker):
         self.refresh_token = tokens["refresh_token"]
 
 
-    def _asegurar_token_valido(self):
+    def _asegurar_token_valido(self): # type: ignore
         if not self.access_token:
             self._inicializar_tokens()
         try:
@@ -104,12 +104,15 @@ class IOLClient(CommonBroker):
 
         # Solo obtener detalles de operaciones nuevas
         for numero in numeros:
-            operaciones.append(self.obtener_operacion_completa(numero).json())
+            operaciones.append(self.obtener_operacion_completa(numero).json()) # type: ignore
         
         # TODO: Implementar manejo de dividendos en IOL
-        #if dividendos:
-        #    manejador_dividendos = self.IOL_manejador_dividendos(dividendos)
-            #operaciones.extend(dividendos)
+        if dividendos:
+            manejador_dividendos = self.IOL_manejador_dividendos(dividendos)
+            print("TODO: Implementar manejo de dividendos en IOL")
+            print("Dividendos capturados sin procesar:")
+            print(dividendos)
+            # operaciones.extend(dividendos)
         
         return operaciones
         
@@ -133,7 +136,6 @@ class IOLClient(CommonBroker):
         response = requests.get(url, headers=headers)
         response.raise_for_status()
 
-        # Guardar en caché
         with db:
             db.guardar_operacion_cache(numero, response.json())
 
@@ -158,11 +160,9 @@ class IOLClient(CommonBroker):
         """Obtiene la fecha y la convierte de Argentina (UTC-3) a UTC"""
         fecha_str = operacion.get("fechaOperado", "")
         
-        # Parse timestamp with timezone info
         argentina_tz = pytz.timezone('America/Argentina/Buenos_Aires')
         fecha_arg = argentina_tz.localize(datetime.fromisoformat(fecha_str))
         
-        # Convert to UTC
         fecha_utc = fecha_arg.astimezone(pytz.UTC)
         
         # Format as required "YYYY-MM-DDT05:00:00.000Z"
@@ -243,6 +243,10 @@ class IOLClient(CommonBroker):
         
         def obtener_operaciones(self) -> List[Dict[str, Any]]:
             raise NotImplementedError
+
+        def obtener_tipo_instrumento(self, operacion: Dict[str, Any]) -> str:
+            raise NotImplementedError
+
 
 
 
