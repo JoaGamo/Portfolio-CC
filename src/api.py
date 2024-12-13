@@ -2,7 +2,7 @@ from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 from typing import Optional, List, Dict
-from db_manager import DatabaseManager
+from db.db_manager import DatabaseManager
 
 app = FastAPI(
     title="Portfolio API",

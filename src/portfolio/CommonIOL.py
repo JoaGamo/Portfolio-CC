@@ -2,8 +2,8 @@ from typing import Any, Dict, List
 from datetime import datetime
 import requests
 import pytz
-from CommonBroker import CommonBroker
-from db_manager import DatabaseManager
+from portfolio.CommonBroker import CommonBroker
+from db.db_manager import DatabaseManager
 
 class IOLClient(CommonBroker):
     def __init__(self, **kwargs):
@@ -109,9 +109,12 @@ class IOLClient(CommonBroker):
         # TODO: Implementar manejo de dividendos en IOL
         if dividendos:
             manejador_dividendos = self.IOL_manejador_dividendos(dividendos)
+            print("-----------------------")
             print("La API de IOL impide manejar dividendos correctamente")
             print("Los guardaremos en caché directamente")
             print(dividendos)
+            print("")
+            print("------------------------")
             for dividendo in dividendos:
                 db.guardar_operacion_cache(dividendo["numero"], dividendo)
         return operaciones

@@ -28,6 +28,7 @@ BEGIN
             precio NUMERIC(19,4) NOT NULL,
             comisiones NUMERIC(19,4) DEFAULT 0,
             mercado VARCHAR(255) NOT NULL,
+            moneda VARCHAR(255) NOT NULL,
             notas TEXT,
             CONSTRAINT idx_ticker_fecha UNIQUE (ticker, fecha)
         );

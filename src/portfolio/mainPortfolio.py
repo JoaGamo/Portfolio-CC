@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import os
-from CommonIOL import IOLClient
-from db_manager import DatabaseManager
+from portfolio.CommonIOL import IOLClient
+from db.db_manager import DatabaseManager
 
 def create_client(client_type="IOL"):
     if client_type == "IOL":
@@ -28,6 +28,7 @@ def actualizar_portfolio(client):
             'precio': client.obtener_precio(operacion),
             'comisiones': client.obtener_comision(operacion),
             'mercado': client.obtener_mercado(operacion),
+            'moneda': client.obtener_moneda(operacion),
             'notas': f"Operación importada desde {client.__class__.__name__}"
         }
         try:
@@ -37,10 +38,10 @@ def actualizar_portfolio(client):
         except Exception as e:
             print(f"Error al insertar operación {operacion_db['ticker']}: {str(e)}")
 
-def main():
+def mainPortfolio():
     load_dotenv()
     client = create_client()
     actualizar_portfolio(client)
 
 if __name__ == "__main__":
-    main()
+    mainPortfolio()
