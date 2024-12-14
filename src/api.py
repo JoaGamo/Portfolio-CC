@@ -21,13 +21,33 @@ app.add_middleware(
 
 
 @app.get("/operaciones/", response_model=List[Dict])
-async def obtener_operaciones(
-    ticker: Optional[str] = Query(None, description="Filtrar por ticker"),
+async def obtener_operaciones_all(
     fecha_inicio: Optional[datetime] = Query(None, description="Fecha inicial (YYYY-MM-DD)"),
     fecha_fin: Optional[datetime] = Query(None, description="Fecha final (YYYY-MM-DD)")
 ):
     """
-    Obtiene lista de operaciones con filtros opcionales
+    Obtiene lista de todas las operaciones
+    """
+    try:
+        db = DatabaseManager()
+        with db:
+            operaciones = db.obtener_operaciones(
+                ticker=None,
+                fecha_inicio=fecha_inicio,
+                fecha_fin=fecha_fin
+            )
+            return operaciones
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/operaciones/{ticker}", response_model=List[Dict])
+async def obtener_operaciones_ticker(
+    ticker: str,
+    fecha_inicio: Optional[datetime] = Query(None, description="Fecha inicial (YYYY-MM-DD)"),
+    fecha_fin: Optional[datetime] = Query(None, description="Fecha final (YYYY-MM-DD)")
+):
+    """
+    Obtiene lista de operaciones por ticker específico
     """
     try:
         db = DatabaseManager()
@@ -40,7 +60,8 @@ async def obtener_operaciones(
             return operaciones
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
+    
+    
 @app.get("/cantidad_actual/", response_model=float)
 async def obtener_cantidad_actual(ticker: str):
     """

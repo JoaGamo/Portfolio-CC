@@ -8,7 +8,8 @@ local files = {
     "main.lua",
     "ui.lua", 
     "api_client.lua",
-    "basalt.lua"
+    "basalt.lua",
+    "json.lua"
 }
 
 if not http then
