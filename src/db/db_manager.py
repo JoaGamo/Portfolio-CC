@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 import psycopg2
+from utils.utils import obtener_dolar_ccl_con_fecha
 from psycopg2.extras import DictCursor
 from typing import Dict, List, Any, Optional
 from datetime import datetime
@@ -140,6 +141,48 @@ class DatabaseManager:
         except psycopg2.Error as e:
             raise Exception(f"Error al obtener la cantidad de operaciones: {e}")
       
+
+    def obtener_profit_actual(self, ticker) -> float:
+        """Obtiene el profit actual de un ticker"""
+        try:
+            if not self.conn or self.conn.closed:
+                self.conectar()
+            
+            query = """
+                SELECT tipo_operacion, cantidad, precio, moneda, fecha
+                FROM operacion 
+                WHERE ticker = %s
+            """
+            self.cur.execute(query, (ticker,))
+            profit_total = 0.0
+            
+            for row in self.cur.fetchall():
+                fecha = row['fecha']
+                if isinstance(fecha, str):
+                    fecha = datetime.fromisoformat(fecha.replace('Z', '+00:00'))
+                dia = fecha.day
+                mes = fecha.month
+                anio = fecha.year
+                
+                if row['tipo_operacion'] == 'compra':
+                    if row['moneda'] == 'ARS':
+                        profit_total -= float(row['cantidad']) * float(row['precio'])
+                    else:
+                        profit_total -= float(row['cantidad']) * float(row['precio']) * obtener_dolar_ccl_con_fecha(anio, mes, dia)
+                elif row['tipo_operacion'] == 'venta':
+                    if row['moneda'] == 'ARS':
+                        profit_total += float(row['cantidad']) * float(row['precio'])
+                    else:
+                        profit_total += float(row['cantidad']) * float(row['precio']) * obtener_dolar_ccl_con_fecha(anio, mes, dia)
+
+            # TODO: Marcará negativo si no quitas de la ecuación las acciones que aún se holdean.
+                
+            
+            return profit_total
+            
+        except psycopg2.Error as e:
+            raise Exception(f"Error al obtener el profit de operaciones: {e}")
+        
 
     def obtener_operacion_cache(self, numero: int) -> Optional[Dict]:
         """Obtiene una operación cacheada por su número"""

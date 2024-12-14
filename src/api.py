@@ -61,6 +61,20 @@ async def obtener_operaciones_ticker(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+@app.get("/profit_actual/{ticker}", response_model=float)
+async def obtener_profit_actual(ticker: str):
+    """
+    Obtiene el profit actual de un ticker
+    """
+    try:
+        db = DatabaseManager()
+        with db:
+            profit_actual = db.obtener_profit_actual(ticker)
+            return profit_actual
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    
     
 @app.get("/cantidad_actual/", response_model=float)
 async def obtener_cantidad_actual(ticker: str):
@@ -75,8 +89,30 @@ async def obtener_cantidad_actual(ticker: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
-
+@app.get("/portfolio", response_model=List[Dict])
+async def obtener_portfolio():
+    """
+    Obtiene el portfolio actual
+    """
+    try:
+        db = DatabaseManager()
+        operaciones = None
+        with db:
+            operaciones = db.obtener_operaciones()
+            portfolio = {}
+            for operacion in operaciones:
+                ticker = operacion['ticker']
+                cantidad = db.obtener_cantidad_actual(ticker)
+                if cantidad > 0:
+                    if ticker not in portfolio:
+                        portfolio[ticker] = {
+                            "ticker": ticker,
+                            "cantidad": cantidad
+                            #"profit_actual": db.obtener_profit_actual(ticker)
+                        }
+        return list(portfolio.values())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 @app.get("/")
 async def root():
     """Endpoint de verificación de API"""
