@@ -39,6 +39,15 @@ def actualizar_portfolio(client):
                 print(f"Operación {operacion_db['ticker']} insertada correctamente")
         except Exception as e:
             print(f"Error al insertar operación {operacion_db['ticker']}: {str(e)}")
+            
+
+def manejo_splits():
+    db = DatabaseManager()
+    operaciones = db.obtener_operaciones()
+    # TODO: Sin terminar manejo de splits. No encontré una API gratuita para obtener información de splits
+    
+    
+    
 
 def mainPortfolio():
     """Actualiza los datos de todas las operaciones en la base de datos"""

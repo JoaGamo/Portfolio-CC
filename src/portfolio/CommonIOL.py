@@ -1,4 +1,5 @@
 import sys
+import time
 from typing import Any, Dict, List
 from datetime import datetime
 import requests
@@ -100,9 +101,6 @@ class IOLClient(CommonBroker):
                 """.format(response.text, str(e))
                 raise TypeError(mensaje)
 
-        # Actualizar lista de operaciones conocidas
-        with db:
-            db.actualizar_operaciones_conocidas(list(nuevos_numeros))
 
         # Solo obtener detalles de operaciones nuevas
         for numero in tqdm(numeros, desc="Obteniendo detalles de operaciones", unit="op", file=sys.stdout, mininterval=0):
@@ -114,28 +112,34 @@ class IOLClient(CommonBroker):
             print("-----------------------")
             print("La API de IOL impide manejar dividendos correctamente")
             print("Los guardaremos en caché directamente")
+            print("Estos son todos los dividendos que no hemos guardado, pues")
+            print("No tenemos forma de saber cuánto $ valen...")
             print(dividendos)
             print("")
             print("------------------------")
             for dividendo in dividendos:
                 db.guardar_operacion_cache(dividendo["numero"], dividendo)
+                
+        # Actualizar lista de operaciones conocidas
+        with db:
+            db.actualizar_operaciones_conocidas(list(nuevos_numeros))
         return operaciones
         
         
     
     # En IOL debemos hacer una segunda API Call por cada operación para obtener la operación completa
     # Junto con su tipo de moneda y todo lo demás :D
-    # TODO: Caching de API calls de IOL
     def obtener_operacion_completa(self, numero):
         # Intentar obtener de la caché primero
         db = DatabaseManager()
         with db:
             cached = db.obtener_operacion_cache(numero)
             if cached:
-                return type('Response', (), {'json': lambda: cached})()
+                return type('Response', (), {'json': lambda self: cached})()
 
-        # Si no está en caché, obtener de la API
         token = self._asegurar_token_valido()
+        time.sleep(2) # IOL tiene un rate limit oculto
+        
         url = f"https://api.invertironline.com/api/v2/operaciones/{numero}"
         headers = {"Authorization": f"Bearer {token}"}
         response = requests.get(url, headers=headers)
@@ -150,13 +154,12 @@ class IOLClient(CommonBroker):
         return operacion["simbolo"].split()[0]
 
     def obtener_cantidad(self, operacion: Dict[str, Any]) -> int:
-        if operacion.get("operaciones"):
-            return operacion["operaciones"][0]["cantidad"]
+        #if operacion.get("operaciones"):
+            #return operacion["operaciones"][0]["cantidad"]
         return operacion.get("cantidad", 0)
 
     def obtener_precio(self, operacion: Dict[str, Any]) -> float:
         if operacion.get("operaciones"):
-            
             return float(operacion["operaciones"][0]["precio"])
         return float(operacion.get("precio", 0))
 
