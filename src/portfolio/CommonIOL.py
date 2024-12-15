@@ -138,7 +138,7 @@ class IOLClient(CommonBroker):
                 return type('Response', (), {'json': lambda self: cached})()
 
         token = self._asegurar_token_valido()
-        time.sleep(2) # IOL tiene un rate limit oculto
+        time.sleep(1.5) # IOL tiene un rate limit oculto
         
         url = f"https://api.invertironline.com/api/v2/operaciones/{numero}"
         headers = {"Authorization": f"Bearer {token}"}
@@ -154,8 +154,10 @@ class IOLClient(CommonBroker):
         return operacion["simbolo"].split()[0]
 
     def obtener_cantidad(self, operacion: Dict[str, Any]) -> int:
-        #if operacion.get("operaciones"):
-            #return operacion["operaciones"][0]["cantidad"]
+        
+        if operacion.get("operaciones"):
+            # iol ._.
+            return sum(op["cantidad"] for op in operacion["operaciones"])
         return operacion.get("cantidad", 0)
 
     def obtener_precio(self, operacion: Dict[str, Any]) -> float:
