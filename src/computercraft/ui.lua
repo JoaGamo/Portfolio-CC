@@ -1,12 +1,10 @@
 local basalt = require("basalt")
 
-local function createUI()
-    -- Crear el frame principal
+local function createUI(onTickerChanged)
     local mainFrame = basalt.createFrame("mainFrame")
         :setSize(term.getSize())
         :setBackground(colors.black)
 
-    -- En lugar de usar setVariable en mainFrame, usaremos basalt.setVariable
     basalt.setVariable("activeMenu", "Operaciones")
 
     -- Crear la barra de menú
@@ -32,7 +30,7 @@ local function createUI()
     local tickerLabel = contentFrames["Operaciones"]:addLabel("tickerLabel")
         :setPosition(2, 1)
         :setForeground(colors.white)
-        :setText("Ticker: NVDA")  -- Valor por defecto
+        :setText("Ticker: ???")  -- Valor por defecto
 
     local listFrame = contentFrames["Operaciones"]:addFrame("listFrame")
         :setPosition(1, 2)
@@ -51,21 +49,34 @@ local function createUI()
     local profitTickerLabel = contentFrames["Profit"]:addLabel("tickerLabel")
         :setPosition(2, 1)
         :setForeground(colors.white)
-        :setText("Ticker: NVDA")
+        :setText("Ticker: ???")
+
+    -- Añadir dropdown para selección de ticker
+    local tickerDropdown = contentFrames["Profit"]:addDropdown("tickerSelect")
+        :setPosition(2, 2)
+        :setSize(16, 1)
+        :setBackground(colors.blue)
+        :setForeground(colors.white)
+
+    -- Configurar el callback para manejar la selección del ticker
+    tickerDropdown:onChange(function(self, event, item)
+        basalt.debug("Se ha seleccionado un ticker:", item and item.text)
+        if item and onTickerChanged and type(onTickerChanged) == "function" then
+            onTickerChanged(item.text)
+        end
+    end)
 
     local profitLabel = contentFrames["Profit"]:addLabel("profitLabel")
-        :setPosition(2, 3) -- Moverlo más abajo del ticker
+        :setPosition(2, 4)
         :setForeground(colors.white)
-        :setText("Cargando profit...") -- Texto por defecto
+        :setText("Cargando profit...")
 
-    -- Crear el frame para el portfolio
     contentFrames["Portfolio"] = mainFrame:addFrame("portfolioFrame")
         :setPosition(1, 4)
         :setSize(mainFrame:getWidth(), mainFrame:getHeight() - 3)
         :setBackground(colors.black)
         :hide()
     
-    -- Añadir una lista para mostrar el portfolio
     local portfolioList = contentFrames["Portfolio"]:addList("portfolioList")
         :setPosition(2, 2)
         :setSize(mainFrame:getWidth() - 4, mainFrame:getHeight() - 6)
@@ -75,11 +86,10 @@ local function createUI()
     -- Estado inicial - mostrar Operaciones
     local currentMenu = "Operaciones"
 
-    -- Modificar el onChange del menuBar
     menuBar:onChange(function(self, event, value)
         basalt.debug("=== Debug onChange ===")
         basalt.debug(event, value)
-        basalt.debug("Cambiando a menú:", value)
+        basalt.debug("Cambiando a men��:", value)
         --basalt.debug("Cambiando a menú:", item and item.text)
         
         -- Obtener frames usando getChild
@@ -156,13 +166,13 @@ local function updatePortfolioList(portfolioList, data)
     
     for _, holding in ipairs(data) do
         portfolioList:addItem(string.format(
-            "%s - Cantidad: %d",
-            holding.ticker,
-            holding.cantidad
+            "%s",
+            holding.ticker
         ))
     end
 end
 
+-- Modificar updateUI para actualizar también el dropdown
 local function updateUI(mainFrame, contentFrames, ticker, data, profit, portfolio)
 
     -- Actualizar labels de ticker en ambos frames
@@ -187,9 +197,31 @@ local function updateUI(mainFrame, contentFrames, ticker, data, profit, portfoli
         contentFrames["Operaciones"]:hide()
         contentFrames["Portfolio"]:hide()
         contentFrames["Profit"]:show()
+        
+        -- Actualizar el dropdown con el ticker actual
+        local tickerDropdown = contentFrames["Profit"]:getChild("tickerSelect")
+        if tickerDropdown then
+            tickerDropdown:setValue(ticker)
+            basalt.debug("Dropdown actualizado con ticker:", ticker)
+        end
+        
         local profitLabel = contentFrames["Profit"]:getChild("profitLabel")
         if profitLabel then
             updateProfitDisplay(profitLabel, ticker, profit)
+        end
+
+        -- Encontrar y seleccionar el ticker correcto en el dropdown
+        local tickerDropdown = contentFrames["Profit"]:getChild("tickerSelect")
+        if tickerDropdown then
+            -- Buscar el índice del ticker actual
+            local items = tickerDropdown:getAll()
+            for i, item in ipairs(items) do
+                if item.text == ticker then
+                    -- Eliminar la llamada a setSelectedItem ya que no existe
+                    -- tickerDropdown:setSelectedItem(i, false)
+                    break
+                end
+            end
         end
     elseif activeMenu == "Portfolio" then
         contentFrames["Operaciones"]:hide()
@@ -206,5 +238,24 @@ end
 
 return {
     createUI = createUI,
-    updateUI = updateUI
+    updateUI = updateUI,
+    updateTickersList = function(dropdown, tickers)
+        if tickers then
+            dropdown:clear()
+            for _, ticker in ipairs(tickers) do
+                -- Asegurarnos que solo agregamos el ticker limpio
+                local tickerValue
+                if type(ticker) == "table" then
+                    -- Si viene como {ticker: "AAPL"}
+                    tickerValue = ticker.ticker
+                elseif type(ticker) == "string" then
+                    -- Si viene como string, limpiar URLs
+                    tickerValue = string.match(ticker, "[^/]+$") or ticker
+                    tickerValue = string.match(tickerValue, "^[^?]+") or tickerValue
+                end
+                print("Agregando ticker:", tickerValue) -- Debug
+                dropdown:addItem(tickerValue)
+            end
+        end
+    end
 }

@@ -2,41 +2,93 @@ local basalt = require("basalt")
 local ui = require("ui")
 local api = require("api_client")
 
--- Ticker actual
-local currentTicker = "PAMP" -- Podríamos hacer esto configurable por argumentos o UI
+local currentTicker = "CRES" -- Ticker inicial
 
--- Crear la UI
-local mainFrame, contentFrames, tickerLabel, profitLabel, listFrame = ui.createUI()
+-- Declaración inicial de la función
+local updateTickerData
 
--- Función para actualizar los datos de un ticker
-local function updateTickerData()
-    local data, err = api.obtenerOperaciones(currentTicker)
-    local profit, profitErr = api.obtenerProfit(currentTicker)
-    local portfolio, portfolioErr = api.obtenerPortfolio()
-    
-    if data or profit or portfolio then
-        ui.updateUI(mainFrame, contentFrames, currentTicker, data, profit, portfolio)
-        return true
-    else
-        print("Error:", err or profitErr or portfolioErr)
-        return false
+-- Crear la UI y pasar el callback 'onTickerChanged'
+local mainFrame, contentFrames, tickerLabel, profitLabel, listFrame = ui.createUI(function(newTicker)
+    if newTicker then
+        basalt.debug("Callback onTickerChanged invocado con ticker:", newTicker)
+        currentTicker = newTicker
+        basalt.debug("Ticker actualizado a:", currentTicker)
+        updateTickerData()
     end
+end)
+
+-- Al inicio después de crear la UI
+local profitFrame = mainFrame:getChild("profitFrame")
+local tickerDropdown = profitFrame:getChild("tickerSelect") -- Cambiado a "tickerSelect"
+
+-- Obtener lista inicial de tickers
+local tickers = api.obtenerTickersUnicos()
+if tickers then
+    ui.updateTickersList(tickerDropdown, tickers)
+end
+
+-- Eliminar el manejador de evento 'ticker_changed'
+--[[
+mainFrame:onEvent("ticker_changed", function(self, event, newTicker)
+    -- Código eliminado
+end)
+]]
+
+-- Configuración de reintentos
+local MAX_RETRIES = 5
+local BASE_WAIT = 0.5 -- segundos
+local MAX_WAIT = 5 -- máximo tiempo de espera
+
+local function exponentialBackoff(attempt)
+    local wait = math.min(MAX_WAIT, BASE_WAIT * (2 ^ (attempt - 1)))
+    return wait + math.random() -- añadir jitter
+end
+
+-- Función para hacer requests con reintentos inmediatos (no bloqueantes)
+local function makeRequest(requestFn, ...)
+    local args = {...}
+    local attempt = 1
+    
+    local function tryRequest() 
+        local data, err = requestFn(table.unpack(args))
+        while not data and attempt < MAX_RETRIES do
+            attempt = attempt + 1
+            basalt.debug(string.format("Error en intento %d/%d: %s", attempt, MAX_RETRIES, err))
+            data, err = requestFn(table.unpack(args))
+        end
+        return data, err
+    end
+
+    return tryRequest()
+end
+
+-- Hacer los requests en paralelo
+updateTickerData = function()
+    -- Crear una tabla para almacenar las respuestas
+    local responses = {}
+    
+    -- Lanzar los 3 requests  
+    responses.operations = makeRequest(api.obtenerOperaciones, currentTicker)
+    responses.profit = makeRequest(api.obtenerProfit, currentTicker)
+    responses.portfolio = makeRequest(api.obtenerPortfolio)
+
+    -- Actualizar la UI con los resultados
+    ui.updateUI(mainFrame, contentFrames, currentTicker,
+        responses.operations,
+        responses.profit, 
+        responses.portfolio
+    )
+
+    return responses.operations ~= nil 
+       or responses.profit ~= nil
+       or responses.portfolio ~= nil
 end
 
 -- Función para actualizar los datos periódicamente
 local function updateData()
-    local contadorErrores = 0
     while true do
-        if not updateTickerData() then
-            contadorErrores = contadorErrores + 1
-            if contadorErrores >= 3 then
-                print("Demasiados errores, deteniendo actualización.")
-                return
-            end
-        else
-            contadorErrores = 0
-        end
-        sleep(3)
+        updateTickerData()
+        sleep(3) -- Reducido de 60s a 3s ya que es una API local
     end
 end
 

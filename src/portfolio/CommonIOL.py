@@ -138,7 +138,7 @@ class IOLClient(CommonBroker):
                 return type('Response', (), {'json': lambda self: cached})()
 
         token = self._asegurar_token_valido()
-        time.sleep(1.5) # IOL tiene un rate limit oculto
+        time.sleep(1.1) # IOL tiene un rate limit oculto
         
         url = f"https://api.invertironline.com/api/v2/operaciones/{numero}"
         headers = {"Authorization": f"Bearer {token}"}

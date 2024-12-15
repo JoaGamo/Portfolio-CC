@@ -5,3 +5,8 @@ def obtener_dolar_ccl_con_fecha(dia, mes, anio):
     if req.status_code != 200:
         raise Exception(f"Error al obtener la cotización del dólar CCL: {req.text}")
     return req.json()['venta']
+
+def obtener_portfolio_piechart() -> str:
+    """Retorna el archivo"""
+    return "test"
+    

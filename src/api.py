@@ -29,8 +29,7 @@ async def obtener_operaciones_all(
     Obtiene lista de todas las operaciones
     """
     try:
-        db = DatabaseManager()
-        with db:
+        with DatabaseManager() as db:
             operaciones = db.obtener_operaciones(
                 ticker=None,
                 fecha_inicio=fecha_inicio,
@@ -39,6 +38,19 @@ async def obtener_operaciones_all(
             return operaciones
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/tickers_unicos", response_model=List[str])
+async def obtener_tickers_unicos():
+    """
+    Obtiene lista de tickers históricos únicos
+    """
+    try:
+        with DatabaseManager() as db:
+            tickers = db.obtener_operaciones_unicas()
+            return [ticker['ticker'] for ticker in tickers]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/operaciones/{ticker}", response_model=List[Dict])
 async def obtener_operaciones_ticker(
@@ -50,8 +62,7 @@ async def obtener_operaciones_ticker(
     Obtiene lista de operaciones por ticker específico
     """
     try:
-        db = DatabaseManager()
-        with db:
+        with DatabaseManager() as db:
             operaciones = db.obtener_operaciones(
                 ticker=ticker,
                 fecha_inicio=fecha_inicio,
@@ -59,22 +70,22 @@ async def obtener_operaciones_ticker(
             )
             return operaciones
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+
 @app.get("/profit_actual/{ticker}", response_model=float)
 async def obtener_profit_actual(ticker: str):
     """
     Obtiene el profit actual de un ticker
     """
     try:
-        db = DatabaseManager()
-        with db:
+        with DatabaseManager() as db:
             profit_actual = db.obtener_profit_actual(ticker)
             return profit_actual
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    
     
 @app.get("/cantidad_actual/", response_model=float)
 async def obtener_cantidad_actual(ticker: str):
@@ -82,12 +93,12 @@ async def obtener_cantidad_actual(ticker: str):
     Obtiene la cantidad actual de un ticker (compras - ventas)
     """
     try:
-        db = DatabaseManager()
-        with db:
+        with DatabaseManager() as db:
             cantidad_actual = db.obtener_cantidad_actual(ticker)
             return cantidad_actual
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/portfolio", response_model=List[Dict])
 async def obtener_portfolio():
@@ -95,9 +106,8 @@ async def obtener_portfolio():
     Obtiene el portfolio actual
     """
     try:
-        db = DatabaseManager()
         operaciones = None
-        with db:
+        with DatabaseManager() as db:
             operaciones = db.obtener_operaciones()
             portfolio = {}
             for operacion in operaciones:
@@ -112,6 +122,7 @@ async def obtener_portfolio():
                         }
         return list(portfolio.values())
     except Exception as e:
+        print("error en portfolio: ", e)
         raise HTTPException(status_code=500, detail=str(e))
 @app.get("/")
 async def root():
