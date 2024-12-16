@@ -1,5 +1,6 @@
 local json = require("json")
 local basalt = require("basalt")
+local config = require("config").loadConfig()
 
 local function handleResponse(response)
     if not response then
@@ -58,19 +59,19 @@ local function makeRequest(url)
 end
 
 local function obtenerOperaciones(ticker)
-    return makeRequest("http://localhost:8000/operaciones/" .. ticker)
+    return makeRequest(config.API_URL .. "/operaciones/" .. ticker)
 end
 
 local function obtenerProfit(ticker)
-    return makeRequest("http://localhost:8000/profit_actual/" .. ticker)
+    return makeRequest(config.API_URL .. "/profit_actual/" .. ticker)
 end
 
 local function obtenerPortfolio()
-    return makeRequest("http://localhost:8000/portfolio")
+    return makeRequest(config.API_URL .. "/portfolio")
 end
 
 local function obtenerTickersUnicos()
-    return makeRequest("http://localhost:8000/tickers_unicos")
+    return makeRequest(config.API_URL .. "/tickers_unicos")
 end
 
 return {
