@@ -10,7 +10,7 @@ local function createUI(onTickerChanged)
     -- Crear la barra de menú
     local menuBar = mainFrame:addMenubar()
         :setPosition(1, 1)
-        :setSize(mainFrame:getWidth(), 3)
+        :setSize(mainFrame:getWidth(), 1)  -- Cambiar de 3 a 1 para reducir altura
         :setBackground(colors.blue)
         :setSelectionColor(colors.lightBlue, colors.white)
         :addItem("Operaciones", colors.white, colors.blue)
@@ -22,8 +22,8 @@ local function createUI(onTickerChanged)
 
     -- Crear el frame para las operaciones
     contentFrames["Operaciones"] = mainFrame:addFrame("operacionesFrame")
-        :setPosition(1, 4)
-        :setSize(mainFrame:getWidth(), mainFrame:getHeight() - 3)
+        :setPosition(1, 2)  -- Cambiar de 4 a 2
+        :setSize(mainFrame:getWidth(), mainFrame:getHeight() - 1)  -- Cambiar -3 a -1
         :setBackground(colors.black)
     
     -- Añadir contenido al frame de operaciones
@@ -39,8 +39,8 @@ local function createUI(onTickerChanged)
 
     -- Crear el frame para el profit
     contentFrames["Profit"] = mainFrame:addFrame("profitFrame")
-        :setPosition(1, 4)
-        :setSize(mainFrame:getWidth(), mainFrame:getHeight() - 3)
+        :setPosition(1, 2)  -- Cambiar de 4 a 2
+        :setSize(mainFrame:getWidth(), mainFrame:getHeight() - 1)  -- Cambiar -3 a -1
         :setBackground(colors.black)
         :hide()
     
@@ -60,7 +60,6 @@ local function createUI(onTickerChanged)
 
     -- Configurar el callback para manejar la selección del ticker
     tickerDropdown:onChange(function(self, event, item)
-        basalt.debug("Se ha seleccionado un ticker:", item and item.text)
         if item and onTickerChanged and type(onTickerChanged) == "function" then
             onTickerChanged(item.text)
         end
@@ -72,25 +71,34 @@ local function createUI(onTickerChanged)
         :setText("Cargando profit...")
 
     contentFrames["Portfolio"] = mainFrame:addFrame("portfolioFrame")
-        :setPosition(1, 4)
-        :setSize(mainFrame:getWidth(), mainFrame:getHeight() - 3)
+        :setPosition(1, 2)  -- Cambiar de 4 a 2
+        :setSize(mainFrame:getWidth(), mainFrame:getHeight() - 1)  -- Cambiar -3 a -1
         :setBackground(colors.black)
         :hide()
     
+    -- Modificar el portfolioList para que ocupe solo un tercio izquierdo
     local portfolioList = contentFrames["Portfolio"]:addList("portfolioList")
         :setPosition(2, 2)
-        :setSize(mainFrame:getWidth() - 4, mainFrame:getHeight() - 6)
+        :setSize(math.floor(mainFrame:getWidth()/3) - 2, mainFrame:getHeight() - 6) -- Usar 1/3 del ancho
         :setBackground(colors.black)
         :setForeground(colors.white)
+
+    -- Crear un frame contenedor para la imagen
+    local imageFrame = contentFrames["Portfolio"]:addFrame()
+        :setPosition(math.floor(mainFrame:getWidth()/3) + 2, 1)
+        :setSize(math.floor(mainFrame:getWidth() * 2/3), mainFrame:getHeight() - 1)
+        :setBackground(colors.black)
+
+    -- Añadir la imagen dentro del frame contenedor
+    local messiImage = imageFrame:addImage()
+        :setBackground(colors.black)
+        :loadImage("messi.bimg")
+        :resizeImage(imageFrame:getWidth(), imageFrame:getHeight())  -- Redimensiona al tamaño exacto del frame
 
     -- Estado inicial - mostrar Operaciones
     local currentMenu = "Operaciones"
 
     menuBar:onChange(function(self, event, value)
-        basalt.debug("=== Debug onChange ===")
-        basalt.debug(event, value)
-        basalt.debug("Cambiando a men��:", value)
-        --basalt.debug("Cambiando a menú:", item and item.text)
         
         -- Obtener frames usando getChild
         local operacionesFrame = mainFrame:getChild("operacionesFrame")
@@ -113,7 +121,6 @@ local function createUI(onTickerChanged)
         
         mainFrame:updateDraw()
         basalt.setVariable("activeMenu", value.text)
-        basalt.debug("=== Fin Debug ===\n")
     end)
 
     return mainFrame, contentFrames, tickerLabel, profitLabel, listFrame
@@ -202,7 +209,6 @@ local function updateUI(mainFrame, contentFrames, ticker, data, profit, portfoli
         local tickerDropdown = contentFrames["Profit"]:getChild("tickerSelect")
         if tickerDropdown then
             tickerDropdown:setValue(ticker)
-            basalt.debug("Dropdown actualizado con ticker:", ticker)
         end
         
         local profitLabel = contentFrames["Profit"]:getChild("profitLabel")
@@ -253,7 +259,6 @@ return {
                     tickerValue = string.match(ticker, "[^/]+$") or ticker
                     tickerValue = string.match(tickerValue, "^[^?]+") or tickerValue
                 end
-                print("Agregando ticker:", tickerValue) -- Debug
                 dropdown:addItem(tickerValue)
             end
         end

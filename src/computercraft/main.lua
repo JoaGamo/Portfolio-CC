@@ -10,9 +10,7 @@ local updateTickerData
 -- Crear la UI y pasar el callback 'onTickerChanged'
 local mainFrame, contentFrames, tickerLabel, profitLabel, listFrame = ui.createUI(function(newTicker)
     if newTicker then
-        basalt.debug("Callback onTickerChanged invocado con ticker:", newTicker)
         currentTicker = newTicker
-        basalt.debug("Ticker actualizado a:", currentTicker)
         updateTickerData()
     end
 end)
