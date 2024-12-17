@@ -51,6 +51,26 @@ BEGIN
             numeros_conocidos INTEGER[] NOT NULL
         );
 
+        CREATE TYPE color_enum AS ENUM (
+            'orange', 'magenta', 'lightBlue', 'yellow', 'lime', 'pink', 'gray', 'lightGray', 
+            'cyan', 'purple', 'blue', 'brown', 'green', 'red'
+        );
+        
+
+        CREATE TYPE color_enum_alterno AS ENUM (
+            'orange', 'blue', 'yellow', 'red', 'green', 'purple', 'magenta', 'lime', 'cyan'
+        );
+
+        CREATE TABLE colores (
+            ticker VARCHAR(255) PRIMARY KEY,
+            color color_enum NOT NULL
+        );
+
+        CREATE TABLE colores_alterno (
+            ticker VARCHAR(255) PRIMARY KEY,
+            color color_enum_alterno NOT NULL
+        );
+
         -- Log the execution
         INSERT INTO initialization_log (script_name) VALUES ('init.sql');
     END IF;

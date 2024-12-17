@@ -1,6 +1,7 @@
 local json = require("json")
 local basalt = require("basalt")
 local config = require("config").loadConfig()
+local base64 = require("base64")
 
 local function handleResponse(response)
     if not response then
@@ -50,10 +51,29 @@ local function handleResponse(response)
     return nil, "Error en la solicitud: " .. responseCode .. " Body: " .. tostring(body)
 end
 
-local function makeRequest(url)
+local function handleBinaryResponse(response)
+    if not response then
+        return nil, "Error de conexión"
+    end
+
+    -- Leer el cuerpo de la respuesta como datos binarios
+    local body = response.readAll()
+    response.close()
+
+    if body then
+        return body  -- Devolver los datos binarios directamente
+    end
+
+    return nil, "Respuesta vacía"
+end
+
+local function makeRequest(url, isBinary)
     local success, response = pcall(http.get, url)
     if not success then
         return nil, "Error de conexión: " .. tostring(response) 
+    end
+    if isBinary then
+        return handleBinaryResponse(response)
     end
     return handleResponse(response)
 end
@@ -74,9 +94,14 @@ local function obtenerTickersUnicos()
     return makeRequest(config.API_URL .. "/tickers_unicos")
 end
 
+local function obtenerPortfolioChart()
+    return makeRequest(config.API_URL .. "/portfolio/chart", true)
+end
+
 return {
     obtenerOperaciones = obtenerOperaciones,
     obtenerProfit = obtenerProfit,
     obtenerPortfolio = obtenerPortfolio,
-    obtenerTickersUnicos = obtenerTickersUnicos
+    obtenerTickersUnicos = obtenerTickersUnicos,
+    obtenerPortfolioChart = obtenerPortfolioChart
 }

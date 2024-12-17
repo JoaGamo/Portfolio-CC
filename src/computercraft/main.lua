@@ -1,5 +1,6 @@
 local basalt = require("basalt")
 local ui = require("ui")
+local base64 = require("base64")
 local api = require("api_client")
 
 local currentTicker = "CRES" -- Ticker inicial
@@ -65,21 +66,24 @@ updateTickerData = function()
     -- Crear una tabla para almacenar las respuestas
     local responses = {}
     
-    -- Lanzar los 3 requests  
+    -- Lanzar los requests
     responses.operations = makeRequest(api.obtenerOperaciones, currentTicker)
     responses.profit = makeRequest(api.obtenerProfit, currentTicker)
     responses.portfolio = makeRequest(api.obtenerPortfolio)
+    responses.chart = makeRequest(api.obtenerPortfolioChart)
 
     -- Actualizar la UI con los resultados
     ui.updateUI(mainFrame, contentFrames, currentTicker,
         responses.operations,
         responses.profit, 
-        responses.portfolio
+        responses.portfolio,
+        responses.chart  -- Pasar los datos del chart
     )
 
     return responses.operations ~= nil 
        or responses.profit ~= nil
        or responses.portfolio ~= nil
+       or responses.chart ~= nil
 end
 
 -- Función para actualizar los datos periódicamente
@@ -108,3 +112,38 @@ parallel.waitForAny(
     updateData,
     handleEvents
 )
+
+-- Dentro de updatePortfolioList en ui.lua o donde corresponda
+
+local function updatePortfolioList(portfolioList, data, chartData)
+    if not data then return end
+    portfolioList:clear()
+    
+    for _, holding in ipairs(data) do
+        portfolioList:addItem(string.format(
+            "%s - %.2f%%", 
+                holding.ticker,
+                holding.porcentaje or 0
+            ),
+        nil, 
+        colors[holding.color])
+    end
+
+    -- Actualizar chart si hay datos nuevos
+    if chartData then
+        -- Guardar temporalmente el chart
+        local tempFile = "temp_chart.bimg"
+        local file = fs.open(tempFile, "wb") -- Modo binario
+        file.write(chartData) -- chartData es binario
+        file.close()
+        
+        -- Cargar y mostrar el chart
+        local imageFrame = portfolioList:getParent():getChild("imageFrame")
+        local chartImage = imageFrame:getChild("chartImage")
+        chartImage:loadImage(tempFile)
+            :resizeImage(imageFrame:getWidth(), imageFrame:getHeight())
+        
+        -- Eliminar archivo temporal si es necesario
+        -- fs.delete(tempFile)
+    end
+end

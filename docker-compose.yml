@@ -16,6 +16,17 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  quickchart:
+    image: ianw/quickchart
+    ports:
+      - "3400:3400"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3400/chart?c={type:'bar',data:{labels:[1,2],datasets:[{data:[1,2]}]}}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
 
 volumes:
   postgres_data:

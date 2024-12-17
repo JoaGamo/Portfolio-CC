@@ -242,6 +242,52 @@ class DatabaseManager:
             
         except Exception as e:
             raise Exception(f"Error al actualizar operaciones conocidas: {e}")
+        
+    def obtener_color(self, ticker: str) -> str:
+        """Obtiene el color de un ticker"""
+        try:
+            query = """
+                SELECT color FROM colores_alterno WHERE ticker = %s
+            """
+            with self.get_cursor() as cursor:
+                cursor.execute(query, (ticker,))
+                result = cursor.fetchone()
+                return result[0] if result else None # type: ignore
+            
+        except Exception as e:
+            raise Exception(f"Error al obtener el color del ticker: {e}")
+
+    def guardar_color(self, ticker: str, color: str) -> None:
+        """Guarda o actualiza el color de un ticker"""
+        try:
+            query = """
+                INSERT INTO colores_alterno (ticker, color)
+                VALUES (%s, %s)
+                ON CONFLICT (ticker) DO UPDATE 
+                SET color = EXCLUDED.color
+            """
+            with self.get_cursor() as cursor:
+                cursor.execute(query, (ticker, color))
+        except Exception as e:
+            raise Exception(f"Error al guardar el color del ticker: {e}")
+
+    def obtener_colores_usados(self) -> List[str]:
+        """Obtiene la lista de colores ya asignados a tickers activos"""
+        try:
+            query = """
+                SELECT DISTINCT c.color
+                FROM colores_alterno c
+                JOIN operacion o ON c.ticker = o.ticker
+                GROUP BY c.ticker, c.color
+                HAVING SUM(CASE WHEN o.tipo_operacion = 'compra' THEN o.cantidad 
+                              WHEN o.tipo_operacion = 'venta' THEN -o.cantidad 
+                              ELSE 0 END) > 0
+            """
+            with self.get_cursor() as cursor:
+                cursor.execute(query)
+                return [row[0] for row in cursor.fetchall()]
+        except Exception as e:
+            raise Exception(f"Error al obtener colores usados: {e}")
 
     def __enter__(self):
         return self

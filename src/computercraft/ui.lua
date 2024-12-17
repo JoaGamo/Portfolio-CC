@@ -84,16 +84,15 @@ local function createUI(onTickerChanged)
         :setForeground(colors.white)
 
     -- Crear un frame contenedor para la imagen
-    local imageFrame = contentFrames["Portfolio"]:addFrame()
+    local imageFrame = contentFrames["Portfolio"]:addFrame("imageFrame")  -- añadir ID al frame
         :setPosition(math.floor(mainFrame:getWidth()/3) + 2, 1)
         :setSize(math.floor(mainFrame:getWidth() * 2/3), mainFrame:getHeight() - 1)
         :setBackground(colors.black)
 
-    -- Añadir la imagen dentro del frame contenedor
-    local messiImage = imageFrame:addImage()
+    local chartImage = imageFrame:addImage("chartImage")  -- añadir ID a la imagen
         :setBackground(colors.black)
-        :loadImage("messi.bimg")
-        :resizeImage(imageFrame:getWidth(), imageFrame:getHeight())  -- Redimensiona al tamaño exacto del frame
+        :setSize(imageFrame:getWidth(), imageFrame:getHeight())
+        
 
     -- Estado inicial - mostrar Operaciones
     local currentMenu = "Operaciones"
@@ -130,7 +129,7 @@ local function updateProfitDisplay(profitLabel, ticker, profit)
     if profit then
         local color = profit >= 0 and colors.green or colors.red
         profitLabel:setForeground(color)
-        profitLabel:setText(string.format("Profit actual: $%.2f", profit))
+        profitLabel:setText(string.format("Profit actual (en pesos): $%.2f", profit))
     end
 end
 
@@ -167,20 +166,40 @@ local function updateOperationsList(listFrame, data)
     end
 end
 
-local function updatePortfolioList(portfolioList, data)
+local function updatePortfolioList(portfolioList, data, chartData)
     if not data then return end
     portfolioList:clear()
     
     for _, holding in ipairs(data) do
         portfolioList:addItem(string.format(
-            "%s",
-            holding.ticker
-        ))
+            "%s - %.2f%%", 
+                holding.ticker,
+                holding.porcentaje or 0
+            ),
+        nil, 
+        colors[holding.color])
+    end
+
+    -- Actualizar chart si hay datos nuevos
+    if chartData then
+        -- Obtener el chartImage usando getChild
+        local imageFrame = portfolioList:getParent():getChild("imageFrame")
+        local chartImage = imageFrame:getChild("chartImage")
+        
+        -- Guardar temporalmente el chart
+        local tempFile = "temp_chart.bimg"
+        local file = fs.open(tempFile, "wb") -- Modo binario
+        file.write(chartData) -- chartData es binario
+        file.close()
+        chartImage:loadImage(tempFile):resizeImage(imageFrame:getWidth(), imageFrame:getHeight())
+        
+        -- Eliminar archivo temporal
+        --fs.delete(tempFile)
     end
 end
 
--- Modificar updateUI para actualizar también el dropdown
-local function updateUI(mainFrame, contentFrames, ticker, data, profit, portfolio)
+-- Modificar updateUI para aceptar el parámetro chart
+local function updateUI(mainFrame, contentFrames, ticker, data, profit, portfolio, chart)
 
     -- Actualizar labels de ticker en ambos frames
     for _, frame in pairs(contentFrames) do
@@ -235,7 +254,7 @@ local function updateUI(mainFrame, contentFrames, ticker, data, profit, portfoli
         contentFrames["Portfolio"]:show()
         local portfolioList = contentFrames["Portfolio"]:getChild("portfolioList")
         if portfolioList then
-            updatePortfolioList(portfolioList, portfolio)
+            updatePortfolioList(portfolioList, portfolio, chart)  -- Pasar el chart a updatePortfolioList
         end
     end
 
