@@ -82,6 +82,8 @@ local function createUI(onTickerChanged)
         :setSize(math.floor(mainFrame:getWidth()/3) - 2, mainFrame:getHeight() - 6) -- Usar 1/3 del ancho
         :setBackground(colors.black)
         :setForeground(colors.white)
+        :addItem("Cargando...")
+
 
     -- Crear un frame contenedor para la imagen
     local imageFrame = contentFrames["Portfolio"]:addFrame("imageFrame")  -- añadir ID al frame
@@ -169,7 +171,7 @@ end
 local function updatePortfolioList(portfolioList, data, chartData)
     if not data then return end
     portfolioList:clear()
-    
+    portfolioList:addItem("", colors.black, colors.black) -- No podemos desmarcar casillas en Basalt, esto es un workaround
     for _, holding in ipairs(data) do
         portfolioList:addItem(string.format(
             "%s - %.2f%%", 
@@ -180,16 +182,14 @@ local function updatePortfolioList(portfolioList, data, chartData)
         colors[holding.color])
     end
 
-    -- Actualizar chart si hay datos nuevos
     if chartData then
-        -- Obtener el chartImage usando getChild
         local imageFrame = portfolioList:getParent():getChild("imageFrame")
         local chartImage = imageFrame:getChild("chartImage")
         
         -- Guardar temporalmente el chart
         local tempFile = "temp_chart.bimg"
-        local file = fs.open(tempFile, "wb") -- Modo binario
-        file.write(chartData) -- chartData es binario
+        local file = fs.open(tempFile, "wb")
+        file.write(chartData)
         file.close()
         chartImage:loadImage(tempFile):resizeImage(imageFrame:getWidth(), imageFrame:getHeight())
         
