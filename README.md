@@ -24,4 +24,8 @@ Clona este repositorio, `cd` hacia el directorio del mismo y ejecuta `docker com
 
 > TODO: Escribir más en detalle una guía, pues el sistema de instalación client-side no está terminado
 
-Descarga el install.lua hacia la computadora ingame, ejecútalo y se descargarán todos los archivos automáticamente. Al finalizar, configura el archivo config.lua y finalmente ejecuta el main.lua
+Descarga el install.lua hacia la computadora in-game, ejecútalo y se descargarán todos los archivos automáticamente. Al finalizar, configura el archivo config.lua y finalmente ejecuta el main.lua
+
+## Limitaciones
+
+Debido a la limitada paleta de colores en ComputerCraft (16 colores) y, que hay colores que Sanjuuni (librería gráfica) no procesa de manera perfecta y colores que no sirven (por ej, color negro siendo que tenemos un fondo negro), en total nos quedaron 9 colores. Si tu portfolio tiene más de 9 tickers, verás que en el pie-chart habrán tickers con colores repetidos
