@@ -9,7 +9,10 @@ local files = {
     "ui.lua", 
     "api_client.lua",
     "basalt.lua",
-    "json.lua"
+    "json.lua",
+    "base64.lua",
+    "config.lua",
+    ".env.example"
 }
 
 if not http then
