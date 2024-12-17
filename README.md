@@ -40,7 +40,7 @@ Ejecuta `docker compose up -d` para iniciar los containers de Postgres (DB) y Qu
 > TODO: Escribir más en detalle una guía, pues el sistema de instalación client-side no está terminado
 
 Descarga el install.lua hacia la computadora in-game con este comando
-`wget https://github.com/JoaGamo/Portfolio-CC/blob/main/src/computercraft/install.lua`
+`wget https://raw.githubusercontent.com/JoaGamo/Portfolio-CC/refs/heads/main/src/computercraft/install.lua`
 
 ejecútalo con `./install.lua` y se descargarán todos los archivos automáticamente, deberás configurar el archivo .env.example (y renombrarlo a .env) para colocar la URL del servidor API, al terminar ejecuta el main.lua con `./main.lua`
 
