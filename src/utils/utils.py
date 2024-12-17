@@ -18,14 +18,6 @@ def process_chart_with_sanjuuni(image_data: bytes) -> bytes:
     
     print("Iniciando procesamiento con sanjuuni")
     
-    # Crear directorio de debug si no existe
-    debug_dir = "debug_images"
-    if not os.path.exists(debug_dir):
-        os.makedirs(debug_dir)
-    
-    # Guardar una copia de la imagen de entrada para debug
-    debug_input_path = os.path.join(debug_dir, "last_input.png")
-    debug_output_path = os.path.join(debug_dir, "last_output.bimg")
     with tempfile.TemporaryDirectory() as temp_dir:
         input_path = os.path.join(temp_dir, "chart.png")
         output_path = os.path.join(temp_dir, "chart.bimg")
@@ -34,12 +26,6 @@ def process_chart_with_sanjuuni(image_data: bytes) -> bytes:
             # Guardar la imagen en el directorio temporal
             with open(input_path, "wb") as f:
                 f.write(image_data)
-            
-            # Guardar una copia para debug
-            with open(debug_input_path, "wb") as f:
-                f.write(image_data)
-            
-            print(f"Imagen de entrada guardada en: {debug_input_path}")
             
             # Procesar con sanjuuni
             subprocess.run([
@@ -57,9 +43,6 @@ def process_chart_with_sanjuuni(image_data: bytes) -> bytes:
             # Leer y retornar el archivo procesado correctamente
             with open(output_path, "rb") as f:
                 bimg_data = f.read()
-            
-            with open(debug_output_path, "wb") as f:
-                f.write(bimg_data)
             
             return bimg_data
                 
@@ -80,6 +63,6 @@ def obtener_precio_actual(ticker: str) -> float:
         current_price = stock.info['regularMarketPreviousClose']
         return float(current_price)
     except Exception as e:
-        #print(f"Error obteniendo precio para {ticker}: {e}")
-        #print("No todos los CEDEARs están en Yahoo... :/")
+        print(f"Error obteniendo precio para {ticker}: {e}")
+        print("No todos los CEDEARs están en Yahoo... :/")
         return 0.0
