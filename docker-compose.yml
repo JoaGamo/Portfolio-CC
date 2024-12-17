@@ -26,6 +26,21 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+  api:
+    build:
+      context: .
+      dockerfile: DockerfileAPI
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - ./src:/app/src
 
 
 volumes:
