@@ -18,13 +18,31 @@ Actualmente la importación de operaciones está implementada con la API de IOL,
 
 ## Instalación server-side
 
-Clona este repositorio, `cd` hacia el directorio del mismo y ejecuta `docker compose up -d` para iniciar los containers de Postgres (DB) y Quickchart (para los pie-charts del portfolio), además del servidor FastAPI principal
+Clona este repositorio, `cd` hacia el directorio raíz del mismo
+
+renombra el archivo .env.example a .env y ábrelo con tu editor de texto de preferencia
+
+Para obtener una contraseña aleatoria puedes usar el comando `openssl rand -hex 32` o [usar esta página web para generar uno](https://codebeautify.org/generate-random-hexadecimal-numbers)
+
+Ahora ingresa a la carpeta portfolio con `cd portfolio`, lo mismo, renombra el .env.example a .env
+
+En este archivo deberás configurar los datos acorde a tu broker, para InvertirOnline primero debes solicitar la autorización para el uso de la API (puedes ver el cómo en la [página de la documentación](https://api.invertironline.com/)), posteriormente debes colocar el usuario y contraseña de tu cuenta en este archivo .env, [tal cual como lo indica la documentación de autenticación de IOL](https://api.invertironline.com/).
+
+"fecha_desde" significa desde qué fecha importaremos las operaciones de tu broker hacia la base de datos
+
+> [!NOTE]
+> IOL te cobrará un recargo de 500$ (pesos) si tienes más de 25.000 llamadas a la API en un mes. Este proyecto implementa un sistema caché para evitar recargos, pero tenlo en cuenta si operas hace mucho tiempo y tienes una excesiva cantidad de operaciones en tu cuenta.
+
+Ejecuta `docker compose up -d` para iniciar los containers de Postgres (DB) y Quickchart (para los pie-charts del portfolio), además del servidor API principal y ya estarás listo server-side.
 
 ## Instalación client-side (in-game)
 
 > TODO: Escribir más en detalle una guía, pues el sistema de instalación client-side no está terminado
 
-Descarga el install.lua hacia la computadora in-game, ejecútalo y se descargarán todos los archivos automáticamente. Al finalizar, configura el archivo config.lua y finalmente ejecuta el main.lua
+Descarga el install.lua hacia la computadora in-game con este comando
+`wget https://github.com/JoaGamo/Portfolio-CC/blob/main/src/computercraft/install.lua`
+
+ejecútalo con `./install.lua` y se descargarán todos los archivos automáticamente, deberás configurar el archivo .env.example (y renombrarlo a .env) para colocar la URL del servidor API, al terminar ejecuta el main.lua con `./main.lua`
 
 ## Limitaciones
 
