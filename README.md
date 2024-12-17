@@ -35,6 +35,10 @@ En este archivo deberás configurar los datos acorde a tu broker, para InvertirO
 
 Ejecuta `docker compose up -d` para iniciar los containers de Postgres (DB) y Quickchart (para los pie-charts del portfolio), además del servidor API principal y ya estarás listo server-side.
 
+## Preparar operaciones del portfolio
+
+Una vez ya configurado los datos de la API de tu broker, ejecuta el main.py ubicado en src/ con `python3 main.py` para importar todas tus operaciones hacia la base de datos
+
 ## Instalación client-side (in-game)
 
 > TODO: Escribir más en detalle una guía, pues el sistema de instalación client-side no está terminado
