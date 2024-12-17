@@ -28,4 +28,9 @@ Descarga el install.lua hacia la computadora in-game, ejecútalo y se descargar�
 
 ## Limitaciones
 
-Debido a la limitada paleta de colores en ComputerCraft (16 colores) y, que hay colores que Sanjuuni (librería gráfica) no procesa de manera perfecta y colores que no sirven (por ej, color negro siendo que tenemos un fondo negro), en total nos quedaron 9 colores. Si tu portfolio tiene más de 9 tickers, verás que en el pie-chart habrán tickers con colores repetidos
+- Debido a la limitada paleta de colores en ComputerCraft (16 colores) y, que hay colores que Sanjuuni (librería gráfica) no procesa de manera perfecta y colores que no sirven (por ej, color negro siendo que tenemos un fondo negro), en total nos quedaron 9 colores. Si tu portfolio tiene más de 9 tickers, verás que en el pie-chart habrán tickers con colores repetidos. Es sólo un bug visual.
+
+- No encontré una API gratuita para manejar los SPLITS de CEDEARs, por lo tanto, si ocurrió un split/reverse split mientras poseías un stock y recibiste acciones adicionales, estas no se registrarán en la base de datos (al menos, con la API de IOL)
+
+- API de IOL: la API no permite manejar (obtener datos precisos de) dividendos, por lo tanto, no los verás registrados en la base de datos.
+
