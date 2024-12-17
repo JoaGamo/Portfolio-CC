@@ -151,6 +151,14 @@ class IOLClient(CommonBroker):
         return response
 
     def obtener_simbolo(self, operacion: Dict[str, Any]) -> str:
+        simbolo = operacion["simbolo"].split()[0]
+        if self.obtener_moneda(operacion) == "USD":
+            if simbolo.endswith("D"):
+                return simbolo[:-1]
+            # caso Citigroup "C.D"
+            if simbolo.endswith(".D"):
+                return simbolo[:-2]
+        
         return operacion["simbolo"].split()[0]
 
     def obtener_cantidad(self, operacion: Dict[str, Any]) -> int:
