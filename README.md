@@ -1,16 +1,27 @@
-# Portfolio en ComputerCraft
+# Portfolio en CC:Tweaked (ComputerCraft)
 
-Objetivo de este proyecto:
+Almacena y visualiza operaciones financieras en una base de datos, mostrándolas en **CC:Tweaked**, un mod de computadoras dentro de Minecraft. Este proyecto permite visualizar un portafolio financiero *a modo básico* dentro del juego.
 
-Almacenar las operaciones financieras en una base de datos y mostrarlas en ComputerCraft, un mod de computadoras dentro de Minecraft. Para ello, necesitaremos:
+![Vista del Portfolio + Piechart](images/Muestra1.png)
+![Profit por ticker](images/Muestra2.1.png)
+![Vista de operaciones por ticker](images/Muestra3.1.png)
 
+## Tecnologías utilizadas
 
-1) Necesitamos una base de datos, usaremos Postgres
+- **PostgreSQL**: para la base de datos de operaciones financieras.
+- **Python (FastAPI)**: como servidor API para conectar ComputerCraft con la base de datos.
+- [**Basalt UI Framework**](https://github.com/Pyroxenium/Basalt): para programar la GUI en ComputerCraft.
+- **API del Broker**: para importar tus operaciones financieras.
+- **CC:Tweaked (ComputerCraft) Mod**: El propósito principal de este proyecto, para verlo dentro del juego.
 
-2) Un conector API para ComputerCraft y un servidor API en Python (FastAPI)
+Actualmente la importación de operaciones está implementada con la API de IOL, pero este script puede ser fácilmente extendido a la API de PPI si se requiere.
 
-3) Programar una GUI en Lua para ComputerCraft
+## Instalación server-side
 
-4) Importaremos los datos financieros a partir de la API de nuestro broker preferido
+Clona este repositorio, `cd` hacia el directorio del mismo y ejecuta `docker compose up -d` para iniciar los containers de Postgres (DB) y Quickchart (para los pie-charts del portfolio), además del servidor FastAPI principal
 
-5) Craftearemos una pantalla dentro de minecraft, conectamos todo y visualizamos datos
+## Instalación client-side (in-game)
+
+> TODO: Escribir más en detalle una guía, pues el sistema de instalación client-side no está terminado
+
+Descarga el install.lua hacia la computadora ingame, ejecútalo y se descargarán todos los archivos automáticamente. Al finalizar, configura el archivo config.lua y finalmente ejecuta el main.lua
