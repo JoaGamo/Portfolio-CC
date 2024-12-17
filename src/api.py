@@ -14,7 +14,7 @@ import base64
 
 # Load environment variables
 load_dotenv()
-QUICKCHART_API_URL = os.getenv('QUICKCHART_API_URL', 'http://localhost:3400')
+QUICKCHART_API_URL = os.getenv('QUICKCHART_API_URL', 'http://quickchart:3400')
 
 app = FastAPI(
     title="Portfolio API",
