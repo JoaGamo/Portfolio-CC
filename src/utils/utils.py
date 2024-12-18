@@ -33,6 +33,7 @@ def process_chart_with_sanjuuni(image_data: bytes) -> bytes:
                 "-i", input_path,
                 "--disable-opencl",
                 "-p",
+                "-B",
                 "-k",
                 "--blit-image",
                 "-o", output_path,

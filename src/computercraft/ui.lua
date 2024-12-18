@@ -57,6 +57,7 @@ local function createUI(onTickerChanged)
         :setSize(16, 1)
         :setBackground(colors.blue)
         :setForeground(colors.white)
+        :setScrollable(true)
 
     -- Configurar el callback para manejar la selección del ticker
     tickerDropdown:onChange(function(self, event, item)

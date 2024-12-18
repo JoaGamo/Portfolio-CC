@@ -41,12 +41,18 @@ Una vez ya configurado los datos de la API de tu broker, ejecuta el main.py ubic
 
 ## Instalación client-side (in-game)
 
-> TODO: Escribir más en detalle una guía, pues el sistema de instalación client-side no está terminado
+Primero debes abrir la configuración del mundo, esta se encuentra en `/directorioMinecraft/saves/TUMUNDO/serverconfig/computercraft-server.toml`
+
+debes modificar 2 datos:
+
+- Agrega un 0 al límite de almacenamiento de las computadoras "COMPUTER_SPACE_LIMIT" (es para poder renderizar los pie charts, no los pude comprimir más)
+
+- [En caso de que tu servidor API corra en la red local, permite el acceso a IP's locales](https://tweaked.cc/guide/local_ips.html)
 
 Descarga el install.lua hacia la computadora in-game con este comando
-`wget https://raw.githubusercontent.com/JoaGamo/Portfolio-CC/refs/heads/main/src/computercraft/install.lua`
+`wget run https://raw.githubusercontent.com/JoaGamo/Portfolio-CC/refs/heads/main/src/computercraft/install.lua`
 
-ejecútalo con `./install.lua` y se descargarán todos los archivos automáticamente, deberás configurar el archivo .env.example (y renombrarlo a .env) para colocar la URL del servidor API, al terminar ejecuta el main.lua con `./main.lua`
+Se descargarán todos los archivos automáticamente, deberás configurar el archivo .env.example (y renombrarlo a .env) con el comando `edit` para colocar la URL del servidor API, al terminar ejecuta el main.lua con `./main.lua`
 
 ## Limitaciones
 
