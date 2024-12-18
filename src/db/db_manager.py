@@ -4,7 +4,7 @@ import psycopg2
 from utils.utils import obtener_dolar_ccl_con_fecha, obtener_dolar_ccl_con_fecha_compra
 from psycopg2.extras import DictCursor
 from typing import Dict, List, Any, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 from contextlib import contextmanager
 from utils.utils import obtener_precio_actual
@@ -152,7 +152,15 @@ class DatabaseManager:
         """Obtiene el profit actual de un ticker"""
         try:
             query = """
-                SELECT tipo_operacion, cantidad, precio, moneda, fecha
+                SELECT 
+                    tipo_operacion, 
+                    cantidad, 
+                    precio, 
+                    moneda, 
+                    fecha,
+                    TO_CHAR(fecha, 'DD') as dia,
+                    TO_CHAR(fecha, 'MM') as mes,
+                    TO_CHAR(fecha, 'YYYY') as anio
                 FROM operacion 
                 WHERE ticker = %s
             """
@@ -161,12 +169,9 @@ class DatabaseManager:
                 profit_total = 0.0
                 
                 for row in cursor.fetchall():
-                    fecha = row['fecha']
-                    if isinstance(fecha, str):
-                        fecha = datetime.fromisoformat(fecha.replace('Z', '+00:00'))
-                    dia = fecha.day
-                    mes = fecha.month
-                    anio = fecha.year
+                    dia = row["dia"]
+                    mes = row["mes"]
+                    anio = row["anio"]
                     
                     if row['tipo_operacion'] == 'compra':
                         if row['moneda'] == 'ARS':
@@ -194,7 +199,15 @@ class DatabaseManager:
         """Obtiene el profit actual convertido a USD (dolar CCL) de un ticker"""
         try:
             query = """
-                SELECT tipo_operacion, cantidad, precio, moneda, fecha
+                SELECT 
+                    tipo_operacion, 
+                    cantidad, 
+                    precio, 
+                    moneda, 
+                    fecha,
+                    TO_CHAR(fecha, 'DD') as dia,
+                    TO_CHAR(fecha, 'MM') as mes,
+                    TO_CHAR(fecha, 'YYYY') as anio
                 FROM operacion 
                 WHERE ticker = %s
             """
@@ -203,12 +216,9 @@ class DatabaseManager:
                 profit_total = 0.0
                 
                 for row in cursor.fetchall():
-                    fecha = row['fecha']
-                    if isinstance(fecha, str):
-                        fecha = datetime.fromisoformat(fecha.replace('Z', '+00:00'))
-                    dia = fecha.day
-                    mes = fecha.month
-                    anio = fecha.year
+                    dia = row["dia"]
+                    mes = row["mes"]
+                    anio = row["anio"]
                     
                     if row['tipo_operacion'] == 'compra':
                         if row['moneda'] == 'USD':
@@ -224,7 +234,7 @@ class DatabaseManager:
             cantidadActual = self.obtener_cantidad_actual(ticker)
             
             if cantidadActual > 0:
-                today = datetime.now()
+                today = datetime.now() - timedelta(days=1)
                 dia = today.strftime("%d")
                 mes = today.strftime("%m")
                 anio = today.strftime("%Y")

@@ -6,15 +6,16 @@ from base64 import b64decode
 import yfinance as yf
 
 
-def obtener_dolar_ccl_con_fecha(dia, mes, anio):
+def obtener_dolar_ccl_con_fecha(anio, mes, dia):
     req = requests.get(f"https://api.argentinadatos.com/v1/cotizaciones/dolares/contadoconliqui/{anio}/{mes}/{dia}")
     if req.status_code != 200:
         raise Exception(f"Error al obtener la cotización del dólar CCL: {req.text}")
     return req.json()['venta']
 
-def obtener_dolar_ccl_con_fecha_compra(dia, mes, anio):
+def obtener_dolar_ccl_con_fecha_compra(anio, mes, dia):
     req = requests.get(f"https://api.argentinadatos.com/v1/cotizaciones/dolares/contadoconliqui/{anio}/{mes}/{dia}")
     if req.status_code != 200:
+        print(req.url)
         raise Exception(f"Error al obtener la cotización del dólar CCL: {req.text}")
     return req.json()['compra']
 
