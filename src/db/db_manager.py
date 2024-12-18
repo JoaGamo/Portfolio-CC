@@ -7,6 +7,7 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime
 from functools import wraps
 from contextlib import contextmanager
+from utils.utils import obtener_precio_actual
 
 # Load environment variables from .env file
 load_dotenv()
@@ -178,8 +179,9 @@ class DatabaseManager:
                         else:
                             profit_total += float(row['cantidad']) * float(row['precio']) * obtener_dolar_ccl_con_fecha(anio, mes, dia)
 
-            # TODO: Marcará negativo si no quitas de la ecuación las acciones que aún se holdean.
-                
+            cantidadActual = self.obtener_cantidad_actual(ticker)
+            if cantidadActual > 0:
+                profit_total += cantidadActual * obtener_precio_actual(ticker)
             
             return profit_total
             
