@@ -26,12 +26,11 @@ if tickers then
     ui.updateTickersList(tickerDropdown, tickers)
 end
 
--- Eliminar el manejador de evento 'ticker_changed'
---[[
-mainFrame:onEvent("ticker_changed", function(self, event, newTicker)
-    -- Código eliminado
-end)
-]]
+-- ...existing code...
+
+local cacheChart
+local cachePortfolio
+local cacheTime = 0
 
 -- Configuración de reintentos
 local MAX_RETRIES = 5
@@ -69,13 +68,21 @@ updateTickerData = function()
     -- Lanzar los requests
     responses.operations = makeRequest(api.obtenerOperaciones, currentTicker)
     responses.profit = makeRequest(api.obtenerProfit, currentTicker)
-    responses.portfolio = makeRequest(api.obtenerPortfolio)
-    responses.chart = makeRequest(api.obtenerPortfolioChart)
+    responses.profitUSD = makeRequest(api.obtenerProfitUSD, currentTicker)
+    
+    if cacheTime == 0 then
+        responses.portfolio = makeRequest(api.obtenerPortfolio)
+        responses.chart = makeRequest(api.obtenerPortfolioChart)
+    else
+        responses.portfolio = cachePortfolio
+        responses.chart = cacheChart
+    end
 
     -- Actualizar la UI con los resultados
     ui.updateUI(mainFrame, contentFrames, currentTicker,
         responses.operations,
-        responses.profit, 
+        responses.profit,
+        responses.profitUSD, 
         responses.portfolio,
         responses.chart  -- Pasar los datos del chart
     )
@@ -90,7 +97,11 @@ end
 local function updateData()
     while true do
         updateTickerData()
-        sleep(3) -- Reducido de 60s a 3s ya que es una API local
+        sleep(1)
+        cacheTime = cacheTime + 1
+        if cacheTime >= 180 then
+            cacheTime = 0
+        end
     end
 end
 

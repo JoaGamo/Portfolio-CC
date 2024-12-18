@@ -97,6 +97,18 @@ async def obtener_profit_actual(ticker: str):
             return profit_actual
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/profit_actual_usd/{ticker}", response_model=float)
+async def obtener_profit_actual_usd(ticker: str):
+    """
+    Obtiene el profit actual de un ticker en dolar CCL
+    """
+    try:
+        with DatabaseManager() as db:
+            profit_actual = db.obtener_profit_actual_usd(ticker)
+            return profit_actual
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
     
 @app.get("/cantidad_actual/", response_model=float)

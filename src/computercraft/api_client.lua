@@ -86,6 +86,10 @@ local function obtenerProfit(ticker)
     return makeRequest(config.API_URL .. "/profit_actual/" .. ticker)
 end
 
+local function obtenerProfitUSD(ticker)
+    return makeRequest(config.API_URL .. "/profit_actual_usd/" .. ticker)
+end
+
 local function obtenerPortfolio()
     return makeRequest(config.API_URL .. "/portfolio")
 end
@@ -101,6 +105,7 @@ end
 return {
     obtenerOperaciones = obtenerOperaciones,
     obtenerProfit = obtenerProfit,
+    obtenerProfitUSD = obtenerProfitUSD,
     obtenerPortfolio = obtenerPortfolio,
     obtenerTickersUnicos = obtenerTickersUnicos,
     obtenerPortfolioChart = obtenerPortfolioChart

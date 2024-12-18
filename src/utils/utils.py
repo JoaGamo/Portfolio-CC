@@ -12,6 +12,12 @@ def obtener_dolar_ccl_con_fecha(dia, mes, anio):
         raise Exception(f"Error al obtener la cotización del dólar CCL: {req.text}")
     return req.json()['venta']
 
+def obtener_dolar_ccl_con_fecha_compra(dia, mes, anio):
+    req = requests.get(f"https://api.argentinadatos.com/v1/cotizaciones/dolares/contadoconliqui/{anio}/{mes}/{dia}")
+    if req.status_code != 200:
+        raise Exception(f"Error al obtener la cotización del dólar CCL: {req.text}")
+    return req.json()['compra']
+
 
 def process_chart_with_sanjuuni(image_data: bytes) -> bytes:
     """Process image data with sanjuuni and return the .bimg content"""

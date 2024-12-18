@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 import psycopg2
-from utils.utils import obtener_dolar_ccl_con_fecha
+from utils.utils import obtener_dolar_ccl_con_fecha, obtener_dolar_ccl_con_fecha_compra
 from psycopg2.extras import DictCursor
 from typing import Dict, List, Any, Optional
 from datetime import datetime
@@ -178,7 +178,8 @@ class DatabaseManager:
                             profit_total += float(row['cantidad']) * float(row['precio'])
                         else:
                             profit_total += float(row['cantidad']) * float(row['precio']) * obtener_dolar_ccl_con_fecha(anio, mes, dia)
-
+                            
+                
             cantidadActual = self.obtener_cantidad_actual(ticker)
             if cantidadActual > 0:
                 profit_total += cantidadActual * obtener_precio_actual(ticker)
@@ -188,6 +189,51 @@ class DatabaseManager:
         except psycopg2.Error as e:
             raise Exception(f"Error al obtener el profit de operaciones: {e}")
         
+        
+    def obtener_profit_actual_usd(self, ticker) -> float:
+        """Obtiene el profit actual convertido a USD (dolar CCL) de un ticker"""
+        try:
+            query = """
+                SELECT tipo_operacion, cantidad, precio, moneda, fecha
+                FROM operacion 
+                WHERE ticker = %s
+            """
+            with self.get_cursor() as cursor:
+                cursor.execute(query, (ticker,))
+                profit_total = 0.0
+                
+                for row in cursor.fetchall():
+                    fecha = row['fecha']
+                    if isinstance(fecha, str):
+                        fecha = datetime.fromisoformat(fecha.replace('Z', '+00:00'))
+                    dia = fecha.day
+                    mes = fecha.month
+                    anio = fecha.year
+                    
+                    if row['tipo_operacion'] == 'compra':
+                        if row['moneda'] == 'USD':
+                            profit_total -= float(row['cantidad']) * float(row['precio'])
+                        else:
+                            profit_total -= float(row['cantidad']) * float(row['precio']) / obtener_dolar_ccl_con_fecha_compra(anio, mes, dia)
+                    elif row['tipo_operacion'] == 'venta':
+                        if row['moneda'] == 'USD':
+                            profit_total += float(row['cantidad']) * float(row['precio'])
+                        else:
+                            profit_total += float(row['cantidad']) * float(row['precio']) / obtener_dolar_ccl_con_fecha(anio, mes, dia)
+
+            cantidadActual = self.obtener_cantidad_actual(ticker)
+            
+            if cantidadActual > 0:
+                today = datetime.now()
+                dia = today.strftime("%d")
+                mes = today.strftime("%m")
+                anio = today.strftime("%Y")
+                profit_total += cantidadActual * obtener_precio_actual(ticker) / obtener_dolar_ccl_con_fecha_compra(anio, mes, dia)
+            
+            return profit_total
+            
+        except psycopg2.Error as e:
+            raise Exception(f"Error al obtener el profit en USD de operaciones: {e}")
 
     def obtener_operacion_cache(self, numero: int) -> Optional[Dict]:
         """Obtiene una operación cacheada por su número"""

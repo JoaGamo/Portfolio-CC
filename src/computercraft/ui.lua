@@ -1,4 +1,11 @@
 local basalt = require("basalt")
+local api = require("api_client")
+
+-- Variables for pagination
+local currentPage = 1
+local itemsPerPage = 10
+local totalPages = 1
+local tickersList = {}
 
 local function createUI(onTickerChanged)
     local mainFrame = basalt.createFrame("mainFrame")
@@ -67,13 +74,41 @@ local function createUI(onTickerChanged)
     end)
 
     local profitLabel = contentFrames["Profit"]:addLabel("profitLabel")
-        :setPosition(2, 4)
+        :setPosition(2, 6)
         :setForeground(colors.white)
         :setText("Cargando profit...")
 
+    local profitUSDLabel = contentFrames["Profit"]:addLabel("profitUSDLabel")
+        :setPosition(2, 7)
+        :setForeground(colors.white)
+        :setText("Cargando profit en USD CCL...")
+
+    -- Añadir botones de paginación al frame de Profit
+    local prevButton = contentFrames["Profit"]:addButton("prevButton")
+        :setPosition(2, 4)
+        :setSize(10, 1)
+        :setText("Anterior")
+        :onClick(function()
+            if currentPage > 1 then
+                currentPage = currentPage - 1
+                updateTickersList(tickerDropdown)
+            end
+        end)
+
+    local nextButton = contentFrames["Profit"]:addButton("nextButton")
+        :setPosition(14, 4)
+        :setSize(10, 1)
+        :setText("Siguiente")
+        :onClick(function()
+            if currentPage < totalPages then
+                currentPage = currentPage + 1
+                updateTickersList(tickerDropdown)
+            end
+        end)
+
     contentFrames["Portfolio"] = mainFrame:addFrame("portfolioFrame")
-        :setPosition(1, 2)  -- Cambiar de 4 a 2
-        :setSize(mainFrame:getWidth(), mainFrame:getHeight() - 1)  -- Cambiar -3 a -1
+        :setPosition(1, 2)
+        :setSize(mainFrame:getWidth(), mainFrame:getHeight() - 1)
         :setBackground(colors.black)
         :hide()
     
@@ -133,6 +168,15 @@ local function updateProfitDisplay(profitLabel, ticker, profit)
         local color = profit >= 0 and colors.green or colors.red
         profitLabel:setForeground(color)
         profitLabel:setText(string.format("Profit actual (en pesos): $%.2f", profit))
+
+    end
+end
+
+local function updateProfitUSDDisplay(profitUSDLabel, ticker, profitUSD)
+    if profitUSD then
+        local color = profitUSD >= 0 and colors.green or colors.red
+        profitUSDLabel:setForeground(color)
+        profitUSDLabel:setText(string.format("Profit actual (en USD CCL): $%.2f", profitUSD))
     end
 end
 
@@ -200,7 +244,7 @@ local function updatePortfolioList(portfolioList, data, chartData)
 end
 
 -- Modificar updateUI para aceptar el parámetro chart
-local function updateUI(mainFrame, contentFrames, ticker, data, profit, portfolio, chart)
+local function updateUI(mainFrame, contentFrames, ticker, data, profit, profitUSD, portfolio, chart)
 
     -- Actualizar labels de ticker en ambos frames
     for _, frame in pairs(contentFrames) do
@@ -236,6 +280,11 @@ local function updateUI(mainFrame, contentFrames, ticker, data, profit, portfoli
             updateProfitDisplay(profitLabel, ticker, profit)
         end
 
+        local profitUSDLabel = contentFrames["Profit"]:getChild("profitUSDLabel")
+        if profitUSDLabel then
+            updateProfitUSDDisplay(profitUSDLabel, ticker, profitUSD)
+        end
+
         -- Encontrar y seleccionar el ticker correcto en el dropdown
         local tickerDropdown = contentFrames["Profit"]:getChild("tickerSelect")
         if tickerDropdown then
@@ -262,25 +311,23 @@ local function updateUI(mainFrame, contentFrames, ticker, data, profit, portfoli
     mainFrame:updateDraw()
 end
 
+-- Modificar la función updateTickersList para soportar paginación
+function updateTickersList(dropdown, tickers)
+    if tickers then
+        tickersList = tickers
+        totalPages = math.ceil(#tickersList / itemsPerPage)
+        currentPage = 1  -- Reiniciar a la primera página
+    end
+    dropdown:clear()
+    local startIndex = (currentPage - 1) * itemsPerPage + 1
+    local endIndex = math.min(startIndex + itemsPerPage - 1, #tickersList)
+    for i = startIndex, endIndex do
+        dropdown:addItem(tickersList[i])
+    end
+end
+
 return {
     createUI = createUI,
     updateUI = updateUI,
-    updateTickersList = function(dropdown, tickers)
-        if tickers then
-            dropdown:clear()
-            for _, ticker in ipairs(tickers) do
-                -- Asegurarnos que solo agregamos el ticker limpio
-                local tickerValue
-                if type(ticker) == "table" then
-                    -- Si viene como {ticker: "AAPL"}
-                    tickerValue = ticker.ticker
-                elseif type(ticker) == "string" then
-                    -- Si viene como string, limpiar URLs
-                    tickerValue = string.match(ticker, "[^/]+$") or ticker
-                    tickerValue = string.match(tickerValue, "^[^?]+") or tickerValue
-                end
-                dropdown:addItem(tickerValue)
-            end
-        end
-    end
+    updateTickersList = updateTickersList
 }
